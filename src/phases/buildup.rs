@@ -7,9 +7,10 @@ use crossterm::{
     style::{Color, SetForegroundColor, ResetColor},
 };
 use crate::animation;
+use crate::sound::{SoundPlayer, SoundEffect};
 
 /// Phase 1: The dramatic buildup — screen goes dark, typewriter text, rage meter fills
-pub fn run(width: u16, height: u16) {
+pub fn run(width: u16, height: u16, sound: &SoundPlayer) {
     let stdout = io::stdout();
     let mut handle = stdout.lock();
 
@@ -41,6 +42,10 @@ pub fn run(width: u16, height: u16) {
 
     // Rage meter
     animation::rage_meter(width);
+    
+    // Sound effect as rage meter completes
+    sound.play(SoundEffect::RapidBells);
+    
     println!();
 
     std::thread::sleep(Duration::from_millis(300));

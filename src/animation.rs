@@ -201,7 +201,7 @@ pub fn format_bytes(bytes: u64) -> String {
 }
 
 /// Flash fake error messages across the screen
-pub fn fake_errors(width: u16) {
+pub fn fake_errors(width: u16, sound: Option<&crate::sound::SoundPlayer>) {
     let errors = vec![
         "✗ Destroying node_modules singularity...",
         "✗ Purging cached dependencies...",
@@ -233,6 +233,12 @@ pub fn fake_errors(width: u16) {
             ResetColor,
         );
         let _ = handle.flush();
+        
+        // Play error sound
+        if let Some(player) = sound {
+            player.play(crate::sound::SoundEffect::Error);
+        }
+        
         std::thread::sleep(Duration::from_millis(rng.gen_range(80..250)));
     }
 }

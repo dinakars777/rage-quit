@@ -4,9 +4,10 @@ use crossterm::{
     execute,
     style::{Color, SetForegroundColor, Print, ResetColor},
 };
+use crate::sound::{SoundPlayer, SoundEffect};
 
 /// Phase 5: The mic drop and final exit message
-pub fn run(width: u16) {
+pub fn run(width: u16, sound: &SoundPlayer) {
     let stdout = io::stdout();
     let mut handle = stdout.lock();
 
@@ -29,6 +30,9 @@ pub fn run(width: u16) {
         println!("{}{}", " ".repeat(padding), line);
         std::thread::sleep(Duration::from_millis(200));
     }
+
+    // Mic drop sound
+    sound.play(SoundEffect::MicDrop);
 
     println!();
     std::thread::sleep(Duration::from_millis(500));

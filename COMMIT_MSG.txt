@@ -1,0 +1,22 @@
+feat: Add sound effects support with terminal bells 🔔
+
+Implements terminal bell-based sound effects throughout the rage-quit experience:
+
+- Added new sound module with SoundPlayer and SoundEffect types
+- New CLI flags: --sound and --bell-only
+- Sound effects integrated into all phases:
+  * Rage meter buildup (rapid bells)
+  * Explosion phase (crescendo)
+  * Fake error messages (error beeps)
+  * Progress bars (success chimes)
+  * Mic drop finale (dramatic sequence)
+
+- Prepared infrastructure for future full audio support via optional 'audio' feature
+- Updated README with sound documentation
+- Added CHANGELOG.md to track changes
+
+The implementation uses terminal bell characters (\x07) for maximum compatibility
+across all terminals without requiring external dependencies. Full audio support
+with actual sound files can be added later as an optional feature.
+
+Closes the "Sound effects mode (terminal bell abuse)" item from Contributing section.

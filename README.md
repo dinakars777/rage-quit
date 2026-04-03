@@ -18,8 +18,14 @@ cargo install rage-quit-cli
 # Full cinematic experience (safe — doesn't delete anything)
 rage-quit
 
+# With sound effects (terminal bells)
+rage-quit --sound
+
 # Actually delete node_modules, dist, .next, target, etc.
 rage-quit --nuke
+
+# Nuke with sound effects
+rage-quit --nuke --sound
 
 # Changed your mind? Reinstall everything
 rage-quit --comeback
@@ -27,17 +33,17 @@ rage-quit --comeback
 # Just show the resignation letter
 rage-quit --letter-only
 
-# Skip animations
+# Skip animations and sound
 rage-quit --silent --nuke
 ```
 
 ## What Happens
 
 1. 🔥 Your terminal erupts in flames
-2. 💀 Fake error messages cascade across your screen
+2. 💀 Fake error messages cascade across your screen (with error beeps!)
 3. 📊 Bloat directories get (optionally) incinerated with dramatic progress bars
 4. 📝 A personalized resignation letter is generated from your project stats
-5. 🎤 Mic drop
+5. 🎤 Mic drop (with sound effect!)
 
 ## The Resignation Letter
 
@@ -55,7 +61,9 @@ rage-quit --silent --nuke
 |------|-------------|
 | `--nuke` | Actually delete bloat directories |
 | `--comeback` | Undo the rage quit (reinstall deps) |
-| `--silent` | Skip animations |
+| `--sound` | Enable sound effects (terminal bells) |
+| `--bell-only` | Use only terminal bells (default when --sound is used) |
+| `--silent` | Skip animations and sound |
 | `--letter-only` | Only show the resignation letter |
 | `--speed` | Animation speed: `slow`, `normal`, `fast` |
 | `--target <PATH>` | Target a specific directory |
@@ -70,8 +78,9 @@ rage-quit --silent --nuke
 ## Contributing
 
 Contributions welcome! Especially:
+- [x] Sound effects mode (terminal bell abuse) ✨ NEW!
 - [ ] More dramatic animations
-- [ ] Sound effects mode (terminal bell abuse)
+- [ ] Full audio mode with actual sound files (explosion, mic drop, etc.)
 - [ ] Team rage-quit (notify Slack before quitting)
 - [ ] Rage quit leaderboard
 

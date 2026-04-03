@@ -2,6 +2,7 @@ mod analyzer;
 mod animation;
 mod phases;
 mod comeback;
+mod sound;
 
 use std::path::PathBuf;
 use clap::Parser;
@@ -34,6 +35,14 @@ struct Cli {
     #[arg(long)]
     letter_only: bool,
 
+    /// Enable sound effects (terminal bells)
+    #[arg(long)]
+    sound: bool,
+
+    /// Use only terminal bells (no audio files)
+    #[arg(long)]
+    bell_only: bool,
+
     /// Animation speed: slow, normal, fast
     #[arg(long, default_value = "normal")]
     speed: String,
@@ -49,6 +58,9 @@ fn main() {
     let target = cli.target.unwrap_or_else(|| {
         std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
     });
+
+    // Create sound player
+    let sound_player = sound::create_player(cli.silent, cli.sound, cli.bell_only);
 
     // Handle comeback mode
     if cli.comeback {
@@ -71,7 +83,7 @@ fn main() {
     // Silent mode
     if cli.silent {
         if cli.nuke {
-            phases::cleanup::run(&stats, true);
+            phases::cleanup::run(&stats, true, &sound_player);
         }
         phases::letter::run(&stats, width);
         return;
@@ -80,17 +92,17 @@ fn main() {
     // ===== FULL CINEMATIC EXPERIENCE =====
 
     // Phase 1: The Buildup
-    phases::buildup::run(width, height);
+    phases::buildup::run(width, height, &sound_player);
 
     // Phase 2: The Explosion
-    phases::explosion::run(width, height);
+    phases::explosion::run(width, height, &sound_player);
 
     // Phase 3: The Cleanup
-    phases::cleanup::run(&stats, cli.nuke);
+    phases::cleanup::run(&stats, cli.nuke, &sound_player);
 
     // Phase 4: The Letter
     phases::letter::run(&stats, width);
 
     // Phase 5: The Exit
-    phases::exit::run(width);
+    phases::exit::run(width, &sound_player);
 }

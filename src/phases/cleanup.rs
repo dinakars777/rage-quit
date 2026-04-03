@@ -8,9 +8,10 @@ use crossterm::{
 };
 use crate::analyzer::ProjectStats;
 use crate::animation;
+use crate::sound::{SoundPlayer, SoundEffect};
 
 /// Phase 3: Cleanup — progress bars for each bloat dir, optionally nuke them
-pub fn run(stats: &ProjectStats, nuke: bool) {
+pub fn run(stats: &ProjectStats, nuke: bool, sound: &SoundPlayer) {
     let stdout = io::stdout();
     let mut handle = stdout.lock();
 
@@ -84,12 +85,12 @@ pub fn run(stats: &ProjectStats, nuke: bool) {
                 ResetColor,
             );
             println!();
-            run_progress_bars(stats, false);
+            run_progress_bars(stats, false, sound);
             return;
         }
 
         println!();
-        run_progress_bars(stats, true);
+        run_progress_bars(stats, true, sound);
     } else {
         let _ = execute!(
             handle,
@@ -99,7 +100,7 @@ pub fn run(stats: &ProjectStats, nuke: bool) {
             ResetColor,
         );
         println!();
-        run_progress_bars(stats, false);
+        run_progress_bars(stats, false, sound);
     }
 
     // Summary
@@ -125,7 +126,7 @@ pub fn run(stats: &ProjectStats, nuke: bool) {
     std::thread::sleep(Duration::from_millis(800));
 }
 
-fn run_progress_bars(stats: &ProjectStats, actually_delete: bool) {
+fn run_progress_bars(stats: &ProjectStats, actually_delete: bool, sound: &SoundPlayer) {
     for dir in &stats.bloat_dirs {
         let size_str = animation::format_bytes(dir.size_bytes);
         let label = if actually_delete {
@@ -138,6 +139,9 @@ fn run_progress_bars(stats: &ProjectStats, actually_delete: bool) {
 
         if actually_delete {
             let _ = std::fs::remove_dir_all(&dir.path);
+            sound.play(SoundEffect::Success);
+        } else {
+            sound.play(SoundEffect::Bell);
         }
     }
 }
