@@ -9,7 +9,7 @@ Because `exit` is too peaceful.
 ## Install
 
 ```bash
-cargo install rage-quit
+cargo install rage-quit-cli
 ```
 
 ## Usage
