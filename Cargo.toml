@@ -1,6 +1,6 @@
 [package]
 name = "rage-quit-cli"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 authors = ["Dinakar Sarbada <dinakars777@gmail.com>"]
 description = "🎤💥 The most dramatic way to leave a project. Ever."
