@@ -1,0 +1,19 @@
+[package]
+name = "rage-quit"
+version = "0.1.0"
+edition = "2021"
+authors = ["Dinakar Sarbada <dinakars777@gmail.com>"]
+description = "🎤💥 The most dramatic way to leave a project. Ever."
+license = "MIT"
+repository = "https://github.com/dinakars777/rage-quit"
+keywords = ["cli", "terminal", "developer-tools", "humor", "tui"]
+categories = ["command-line-utilities"]
+
+[dependencies]
+ratatui = "0.29"
+crossterm = "0.28"
+clap = { version = "4", features = ["derive"] }
+chrono = "0.4"
+anyhow = "1.0"
+rand = "0.8"
+walkdir = "2"
