@@ -104,6 +104,16 @@
             font-weight: 600;
         }
 
+        /* Hero Buttons */
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+
         /* Install Box */
         .install-box {
             background: var(--surface);
@@ -115,7 +125,6 @@
             display: flex;
             align-items: center;
             gap: 1rem;
-            margin-bottom: 2rem;
             cursor: pointer;
             transition: all 0.2s ease;
             position: relative;
@@ -142,6 +151,29 @@
 
         .install-box.copied .copy-hint {
             color: var(--green);
+        }
+
+        /* Star Button */
+        .star-button {
+            background: transparent;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .star-button:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px var(--accent-glow);
         }
 
         /* Demo Section */
@@ -351,10 +383,15 @@
         <h1>rage-quit</h1>
         <p class="tagline">The most dramatic way to leave a project. <em>Ever.</em></p>
 
-        <div class="install-box" onclick="copyInstall(this)">
-            <span class="prefix">$</span>
-            <span class="cmd">cargo install rage-quit-cli</span>
-            <span class="copy-hint">click to copy</span>
+        <div class="hero-buttons">
+            <div class="install-box" onclick="copyInstall(this)">
+                <span class="prefix">$</span>
+                <span class="cmd">cargo install rage-quit-cli</span>
+                <span class="copy-hint">click to copy</span>
+            </div>
+            <a href="https://github.com/dinakars777/rage-quit" class="star-button" target="_blank">
+                ⭐ Star on GitHub
+            </a>
         </div>
     </section>
 
