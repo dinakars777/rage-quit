@@ -1,10 +1,10 @@
-use std::io::{self, Write};
-use std::time::Duration;
+use crate::sound::{SoundEffect, SoundPlayer};
 use crossterm::{
     execute,
-    style::{Color, SetForegroundColor, Print, ResetColor},
+    style::{Color, Print, ResetColor, SetForegroundColor},
 };
-use crate::sound::{SoundPlayer, SoundEffect};
+use std::io::{self, Write};
+use std::time::Duration;
 
 /// Phase 5: The mic drop and final exit message
 pub fn run(width: u16, sound: &SoundPlayer) {

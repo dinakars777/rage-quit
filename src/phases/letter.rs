@@ -1,13 +1,13 @@
-use std::io::{self, Write};
-use std::time::Duration;
+use crate::analyzer::ProjectStats;
 use crossterm::{
-    execute,
-    terminal::{Clear, ClearType},
     cursor::MoveTo,
-    style::{Color, SetForegroundColor, ResetColor},
+    execute,
+    style::{Color, ResetColor, SetForegroundColor},
+    terminal::{Clear, ClearType},
 };
 use rand::seq::SliceRandom;
-use crate::analyzer::ProjectStats;
+use std::io::{self, Write};
+use std::time::Duration;
 
 /// Phase 4: The resignation letter — dynamically generated from project stats
 pub fn run(stats: &ProjectStats, width: u16) {
@@ -30,7 +30,14 @@ pub fn run(stats: &ProjectStats, width: u16) {
     std::thread::sleep(Duration::from_millis(300));
 
     // Draw the box
-    let _ = execute!(handle, SetForegroundColor(Color::Rgb { r: 200, g: 200, b: 200 }));
+    let _ = execute!(
+        handle,
+        SetForegroundColor(Color::Rgb {
+            r: 200,
+            g: 200,
+            b: 200
+        })
+    );
 
     // Top border
     println!("{}┌{}┐", pad, "─".repeat(box_width));
@@ -38,7 +45,13 @@ pub fn run(stats: &ProjectStats, width: u16) {
     // Title
     let title = "LETTER OF RESIGNATION";
     let title_pad = (box_width - title.len()) / 2;
-    println!("{}│{}{}{}│", pad, " ".repeat(title_pad), title, " ".repeat(box_width - title_pad - title.len()));
+    println!(
+        "{}│{}{}{}│",
+        pad,
+        " ".repeat(title_pad),
+        title,
+        " ".repeat(box_width - title_pad - title.len())
+    );
     println!("{}│{}│", pad, " ".repeat(box_width));
 
     // Letter body
@@ -49,7 +62,12 @@ pub fn run(stats: &ProjectStats, width: u16) {
             line.clone()
         };
         let right_pad = box_width - 2 - display_line.len();
-        println!("{}│ {}{} │", pad, display_line, " ".repeat(right_pad.max(0)));
+        println!(
+            "{}│ {}{} │",
+            pad,
+            display_line,
+            " ".repeat(right_pad.max(0))
+        );
         std::thread::sleep(Duration::from_millis(80));
     }
 
@@ -91,7 +109,7 @@ pub fn generate_letter(stats: &ProjectStats) -> Vec<String> {
     lines.push(String::new());
 
     // Sign-off
-    let signoffs = vec![
+    let signoffs = [
         vec![
             "I wish you nothing but segfaults.".to_string(),
             String::new(),
@@ -149,13 +167,8 @@ fn generate_grievances(stats: &ProjectStats) -> Vec<String> {
         ));
         grievances.push("  it's a support group.".to_string());
     } else if stats.dependency_count > 50 {
-        grievances.push(format!(
-            "A dependency list longer than my will",
-        ));
-        grievances.push(format!(
-            "  to live ({} packages).",
-            stats.dependency_count
-        ));
+        grievances.push("A dependency list longer than my will".to_string());
+        grievances.push(format!("  to live ({} packages).", stats.dependency_count));
     } else if stats.dependency_count > 0 {
         grievances.push(format!(
             "{} dependencies — each one a tiny regret.",
@@ -163,12 +176,17 @@ fn generate_grievances(stats: &ProjectStats) -> Vec<String> {
         ));
     }
 
+    if stats.total_files > 0 {
+        grievances.push(format!(
+            "{} {} files, somehow still not enough",
+            stats.total_files, stats.project_type
+        ));
+        grievances.push("  abstraction.".to_string());
+    }
+
     if let Some((ref name, lines)) = stats.largest_file {
         if lines > 500 {
-            grievances.push(format!(
-                "A {}-line file called '{}'. It has",
-                lines, name
-            ));
+            grievances.push(format!("A {}-line file called '{}'. It has", lines, name));
             grievances.push("  its own weather system.".to_string());
         } else if lines > 200 {
             grievances.push(format!(
@@ -195,19 +213,13 @@ fn generate_grievances(stats: &ProjectStats) -> Vec<String> {
 
     if stats.total_bloat_bytes > 524_288_000 {
         let size = crate::animation::format_bytes(stats.total_bloat_bytes);
-        grievances.push(format!(
-            "Bloat weighing {}. Heavier than my",
-            size
-        ));
+        grievances.push(format!("Bloat weighing {}. Heavier than my", size));
         grievances.push("  existential dread.".to_string());
     }
 
     if let Some(commits) = stats.git_commits {
         if commits > 500 {
-            grievances.push(format!(
-                "{} commits. Stockholm syndrome",
-                commits
-            ));
+            grievances.push(format!("{} commits. Stockholm syndrome", commits));
             grievances.push("  at its finest.".to_string());
         }
     }

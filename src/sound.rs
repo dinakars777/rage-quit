@@ -3,23 +3,19 @@ use std::io::{self, Write};
 /// Sound effect types
 #[derive(Debug, Clone, Copy)]
 pub enum SoundEffect {
-    Bell,           // Simple terminal bell
-    DoubleBell,     // Two quick bells
-    TripleBell,     // Three quick bells
-    RapidBells,     // Rapid fire bells
-    Explosion,      // Bell pattern for explosion
-    MicDrop,        // Dramatic bell sequence
-    Error,          // Error beep
-    Success,        // Success chime
+    Bell,       // Simple terminal bell
+    RapidBells, // Rapid fire bells
+    Explosion,  // Bell pattern for explosion
+    MicDrop,    // Dramatic bell sequence
+    Error,      // Error beep
+    Success,    // Success chime
 }
 
 /// Sound mode configuration
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum SoundMode {
-    Silent,         // No sound
-    Bell,           // Terminal bell only
-    #[cfg(feature = "audio")]
-    Full,           // Full audio with rodio (when feature enabled)
+    Silent, // No sound
+    Bell,   // Terminal bell only
 }
 
 pub struct SoundPlayer {
@@ -38,10 +34,8 @@ impl SoundPlayer {
         }
 
         match self.mode {
-            SoundMode::Silent => {},
+            SoundMode::Silent => {}
             SoundMode::Bell => self.play_bell(effect),
-            #[cfg(feature = "audio")]
-            SoundMode::Full => self.play_audio(effect),
         }
     }
 
@@ -54,22 +48,6 @@ impl SoundPlayer {
             SoundEffect::Bell => {
                 let _ = write!(handle, "\x07");
                 let _ = handle.flush();
-            }
-            SoundEffect::DoubleBell => {
-                let _ = write!(handle, "\x07");
-                let _ = handle.flush();
-                std::thread::sleep(std::time::Duration::from_millis(100));
-                let _ = write!(handle, "\x07");
-                let _ = handle.flush();
-            }
-            SoundEffect::TripleBell => {
-                for i in 0..3 {
-                    let _ = write!(handle, "\x07");
-                    let _ = handle.flush();
-                    if i < 2 {
-                        std::thread::sleep(std::time::Duration::from_millis(100));
-                    }
-                }
             }
             SoundEffect::RapidBells => {
                 for i in 0..5 {
@@ -115,31 +93,14 @@ impl SoundPlayer {
             }
         }
     }
-
-    #[cfg(feature = "audio")]
-    fn play_audio(&self, effect: SoundEffect) {
-        // Placeholder for full audio implementation with rodio
-        // For now, fall back to bells
-        self.play_bell(effect);
-    }
 }
 
 /// Create a sound player based on CLI flags
 pub fn create_player(silent: bool, sound: bool, bell_only: bool) -> SoundPlayer {
     let mode = if silent {
         SoundMode::Silent
-    } else if bell_only {
+    } else if sound || bell_only {
         SoundMode::Bell
-    } else if sound {
-        #[cfg(feature = "audio")]
-        {
-            SoundMode::Full
-        }
-        #[cfg(not(feature = "audio"))]
-        {
-            eprintln!("⚠️  Full audio not available. Compile with --features audio");
-            SoundMode::Bell
-        }
     } else {
         // Default: use bells
         SoundMode::Bell

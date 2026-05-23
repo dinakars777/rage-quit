@@ -1,10 +1,10 @@
-use std::io::{self, Write};
-use std::time::Duration;
 use crossterm::{
     execute,
-    style::{Color, Print, SetForegroundColor, ResetColor},
+    style::{Color, Print, ResetColor, SetForegroundColor},
 };
 use rand::Rng;
+use std::io::{self, Write};
+use std::time::Duration;
 
 /// Print text one character at a time with a delay
 pub fn typewriter(text: &str, delay_ms: u64) {
@@ -37,13 +37,17 @@ pub fn rage_meter(width: u16) {
 
     for i in 0..=steps {
         let pct = (i as f64 / steps as f64 * 100.0) as u8;
-        let filled = (i as usize * bar_width) / steps;
+        let filled = (i * bar_width) / steps;
         let empty = bar_width - filled;
 
         let color = match pct {
             0..=30 => Color::Green,
             31..=60 => Color::Yellow,
-            61..=85 => Color::Rgb { r: 255, g: 140, b: 0 }, // orange
+            61..=85 => Color::Rgb {
+                r: 255,
+                g: 140,
+                b: 0,
+            }, // orange
             _ => Color::Red,
         };
 
@@ -54,30 +58,33 @@ pub fn rage_meter(width: u16) {
             pct
         );
 
-        let _ = execute!(
-            handle,
-            SetForegroundColor(color),
-            Print(&bar),
-            ResetColor
-        );
+        let _ = execute!(handle, SetForegroundColor(color), Print(&bar), ResetColor);
         let _ = handle.flush();
         std::thread::sleep(Duration::from_millis(60));
     }
 
     // Flash red 3 times at 100%
     for _ in 0..3 {
-        let bar_full = format!(
-            "\r  RAGE LEVEL [{}] 100%",
-            "█".repeat(bar_width)
+        let bar_full = format!("\r  RAGE LEVEL [{}] 100%", "█".repeat(bar_width));
+        let _ = execute!(
+            handle,
+            SetForegroundColor(Color::DarkRed),
+            Print(&bar_full),
+            ResetColor
         );
-        let _ = execute!(handle, SetForegroundColor(Color::DarkRed), Print(&bar_full), ResetColor);
         let _ = handle.flush();
         std::thread::sleep(Duration::from_millis(100));
-        let bar_bright = format!(
-            "\r  RAGE LEVEL [{}] 100%",
-            "█".repeat(bar_width)
+        let bar_bright = format!("\r  RAGE LEVEL [{}] 100%", "█".repeat(bar_width));
+        let _ = execute!(
+            handle,
+            SetForegroundColor(Color::Rgb {
+                r: 255,
+                g: 50,
+                b: 50
+            }),
+            Print(&bar_bright),
+            ResetColor
         );
-        let _ = execute!(handle, SetForegroundColor(Color::Rgb { r: 255, g: 50, b: 50 }), Print(&bar_bright), ResetColor);
         let _ = handle.flush();
         std::thread::sleep(Duration::from_millis(100));
     }
@@ -93,12 +100,24 @@ pub fn fire_animation(width: u16, height: u16) {
 
     let fire_chars = ['░', '▒', '▓', '█', '▓', '▒'];
     let fire_colors = [
-        Color::Rgb { r: 139, g: 0, b: 0 },     // dark red
+        Color::Rgb { r: 139, g: 0, b: 0 }, // dark red
         Color::Red,
-        Color::Rgb { r: 255, g: 69, b: 0 },     // orange-red
-        Color::Rgb { r: 255, g: 140, b: 0 },    // orange
+        Color::Rgb {
+            r: 255,
+            g: 69,
+            b: 0,
+        }, // orange-red
+        Color::Rgb {
+            r: 255,
+            g: 140,
+            b: 0,
+        }, // orange
         Color::Yellow,
-        Color::Rgb { r: 255, g: 255, b: 100 },  // bright yellow
+        Color::Rgb {
+            r: 255,
+            g: 255,
+            b: 100,
+        }, // bright yellow
     ];
 
     let w = width as usize;
@@ -106,10 +125,7 @@ pub fn fire_animation(width: u16, height: u16) {
 
     // Grow fire from bottom
     for row_count in 1..=h {
-        let _ = execute!(
-            handle,
-            crossterm::cursor::MoveTo(0, 0),
-        );
+        let _ = execute!(handle, crossterm::cursor::MoveTo(0, 0),);
 
         // Empty rows above fire
         for _ in 0..(h - row_count) {
@@ -168,22 +184,28 @@ pub fn progress_bar(label: &str, verb: &str, size_str: &str, duration_ms: u64) {
         );
 
         let color = if pct < 50 {
-            Color::Rgb { r: 255, g: 140, b: 0 }
+            Color::Rgb {
+                r: 255,
+                g: 140,
+                b: 0,
+            }
         } else if pct < 90 {
             Color::Red
         } else {
             Color::DarkRed
         };
 
-        let _ = execute!(handle, SetForegroundColor(color), Print(&status), ResetColor);
+        let _ = execute!(
+            handle,
+            SetForegroundColor(color),
+            Print(&status),
+            ResetColor
+        );
         let _ = handle.flush();
         std::thread::sleep(Duration::from_millis(duration_ms / steps as u64));
     }
 
-    let _ = execute!(
-        handle,
-        Print(format!(" — {} freed", size_str)),
-    );
+    let _ = execute!(handle, Print(format!(" — {} freed", size_str)),);
     println!();
 }
 
@@ -233,12 +255,12 @@ pub fn fake_errors(width: u16, sound: Option<&crate::sound::SoundPlayer>) {
             ResetColor,
         );
         let _ = handle.flush();
-        
+
         // Play error sound
         if let Some(player) = sound {
             player.play(crate::sound::SoundEffect::Error);
         }
-        
+
         std::thread::sleep(Duration::from_millis(rng.gen_range(80..250)));
     }
 }

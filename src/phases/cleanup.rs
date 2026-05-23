@@ -1,14 +1,14 @@
-use std::io::{self, Write, Read};
-use std::time::Duration;
-use crossterm::{
-    execute,
-    terminal::{Clear, ClearType},
-    cursor::MoveTo,
-    style::{Color, SetForegroundColor, Print, ResetColor, Attribute, SetAttribute},
-};
 use crate::analyzer::ProjectStats;
 use crate::animation;
-use crate::sound::{SoundPlayer, SoundEffect};
+use crate::sound::{SoundEffect, SoundPlayer};
+use crossterm::{
+    cursor::MoveTo,
+    execute,
+    style::{Attribute, Color, Print, ResetColor, SetAttribute, SetForegroundColor},
+    terminal::{Clear, ClearType},
+};
+use std::io::{self, Read, Write};
+use std::time::Duration;
 
 /// Phase 3: Cleanup — progress bars for each bloat dir, optionally nuke them
 pub fn run(stats: &ProjectStats, nuke: bool, sound: &SoundPlayer) {
@@ -45,7 +45,11 @@ pub fn run(stats: &ProjectStats, nuke: bool, sound: &SoundPlayer) {
             let _ = execute!(
                 handle,
                 SetForegroundColor(Color::DarkRed),
-                Print(format!("    • {} ({})\n", dir.label, animation::format_bytes(dir.size_bytes))),
+                Print(format!(
+                    "    • {} ({})\n",
+                    dir.label,
+                    animation::format_bytes(dir.size_bytes)
+                )),
                 ResetColor,
             );
         }
@@ -109,15 +113,25 @@ pub fn run(stats: &ProjectStats, nuke: bool, sound: &SoundPlayer) {
     if nuke {
         let _ = execute!(
             handle,
-            SetForegroundColor(Color::Rgb { r: 255, g: 100, b: 100 }),
-            Print(format!("  💥 Reclaimed {} of disk space. Freedom.\n", total)),
+            SetForegroundColor(Color::Rgb {
+                r: 255,
+                g: 100,
+                b: 100
+            }),
+            Print(format!(
+                "  💥 Reclaimed {} of disk space. Freedom.\n",
+                total
+            )),
             ResetColor,
         );
     } else {
         let _ = execute!(
             handle,
             SetForegroundColor(Color::Yellow),
-            Print(format!("  💭 Would have freed {}. Use --nuke to make it real.\n", total)),
+            Print(format!(
+                "  💭 Would have freed {}. Use --nuke to make it real.\n",
+                total
+            )),
             ResetColor,
         );
     }

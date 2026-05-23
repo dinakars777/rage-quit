@@ -1,12 +1,12 @@
 mod analyzer;
 mod animation;
-mod phases;
 mod comeback;
+mod phases;
 mod sound;
 
-use std::path::PathBuf;
 use clap::Parser;
 use crossterm::terminal;
+use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
 #[command(
@@ -55,9 +55,9 @@ struct Cli {
 fn main() {
     let cli = Cli::parse();
 
-    let target = cli.target.unwrap_or_else(|| {
-        std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
-    });
+    let target = cli
+        .target
+        .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
 
     // Create sound player
     let sound_player = sound::create_player(cli.silent, cli.sound, cli.bell_only);
