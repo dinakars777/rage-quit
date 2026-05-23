@@ -1,13 +1,13 @@
+use crate::animation;
+use crate::sound::{SoundEffect, SoundPlayer};
+use crossterm::{
+    cursor::MoveTo,
+    execute,
+    style::{Color, ResetColor, SetForegroundColor},
+    terminal::{Clear, ClearType},
+};
 use std::io::{self, Write};
 use std::time::Duration;
-use crossterm::{
-    execute,
-    terminal::{Clear, ClearType},
-    cursor::MoveTo,
-    style::{Color, SetForegroundColor, ResetColor},
-};
-use crate::animation;
-use crate::sound::{SoundPlayer, SoundEffect};
 
 /// Phase 1: The dramatic buildup — screen goes dark, typewriter text, rage meter fills
 pub fn run(width: u16, height: u16, sound: &SoundPlayer) {
@@ -27,7 +27,11 @@ pub fn run(width: u16, height: u16, sound: &SoundPlayer) {
     // Dramatic opening
     let _ = execute!(
         handle,
-        SetForegroundColor(Color::Rgb { r: 180, g: 180, b: 180 }),
+        SetForegroundColor(Color::Rgb {
+            r: 180,
+            g: 180,
+            b: 180
+        }),
     );
     animation::typewriter_centered("You have mass-committed enough.", width, 50);
     println!();
@@ -42,10 +46,10 @@ pub fn run(width: u16, height: u16, sound: &SoundPlayer) {
 
     // Rage meter
     animation::rage_meter(width);
-    
+
     // Sound effect as rage meter completes
     sound.play(SoundEffect::RapidBells);
-    
+
     println!();
 
     std::thread::sleep(Duration::from_millis(300));

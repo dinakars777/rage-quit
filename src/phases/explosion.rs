@@ -1,12 +1,12 @@
-use std::io::{self, Write};
-use std::time::Duration;
+use crate::animation;
+use crate::sound::{SoundEffect, SoundPlayer};
 use crossterm::{
+    cursor::MoveTo,
     execute,
     terminal::{Clear, ClearType},
-    cursor::MoveTo,
 };
-use crate::animation;
-use crate::sound::{SoundPlayer, SoundEffect};
+use std::io::{self, Write};
+use std::time::Duration;
 
 /// Phase 2: The explosion — fire fills the screen, fake errors cascade
 pub fn run(width: u16, height: u16, sound: &SoundPlayer) {

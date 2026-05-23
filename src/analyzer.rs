@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 use walkdir::WalkDir;
 
@@ -46,7 +46,7 @@ impl std::fmt::Display for ProjectType {
     }
 }
 
-pub fn analyze(target: &PathBuf) -> ProjectStats {
+pub fn analyze(target: &Path) -> ProjectStats {
     let project_name = target
         .file_name()
         .map(|n| n.to_string_lossy().to_string())
@@ -62,7 +62,18 @@ pub fn analyze(target: &PathBuf) -> ProjectStats {
     let mut utils_file_count = 0usize;
     let mut todo_count = 0usize;
 
-    let skip_dirs = ["node_modules", "target", "dist", ".next", ".git", "__pycache__", ".turbo", "build", ".cache", "vendor"];
+    let skip_dirs = [
+        "node_modules",
+        "target",
+        "dist",
+        ".next",
+        ".git",
+        "__pycache__",
+        ".turbo",
+        "build",
+        ".cache",
+        "vendor",
+    ];
 
     for entry in WalkDir::new(target)
         .max_depth(6)
@@ -82,8 +93,29 @@ pub fn analyze(target: &PathBuf) -> ProjectStats {
             }
 
             // Count lines and TODOs for source files
-            let ext = entry.path().extension().and_then(|e| e.to_str()).unwrap_or("");
-            let is_source = matches!(ext, "js" | "ts" | "tsx" | "jsx" | "rs" | "py" | "go" | "java" | "rb" | "css" | "html" | "vue" | "svelte" | "c" | "cpp" | "h");
+            let ext = entry
+                .path()
+                .extension()
+                .and_then(|e| e.to_str())
+                .unwrap_or("");
+            let is_source = matches!(
+                ext,
+                "js" | "ts"
+                    | "tsx"
+                    | "jsx"
+                    | "rs"
+                    | "py"
+                    | "go"
+                    | "java"
+                    | "rb"
+                    | "css"
+                    | "html"
+                    | "vue"
+                    | "svelte"
+                    | "c"
+                    | "cpp"
+                    | "h"
+            );
 
             if is_source {
                 if let Ok(content) = std::fs::read_to_string(entry.path()) {
@@ -101,7 +133,11 @@ pub fn analyze(target: &PathBuf) -> ProjectStats {
                     // Count TODOs
                     for line in content.lines() {
                         let upper = line.to_uppercase();
-                        if upper.contains("TODO") || upper.contains("FIXME") || upper.contains("HACK") || upper.contains("XXX") {
+                        if upper.contains("TODO")
+                            || upper.contains("FIXME")
+                            || upper.contains("HACK")
+                            || upper.contains("XXX")
+                        {
                             todo_count += 1;
                         }
                     }
@@ -128,7 +164,7 @@ pub fn analyze(target: &PathBuf) -> ProjectStats {
     }
 }
 
-fn detect_project_type(target: &PathBuf) -> ProjectType {
+fn detect_project_type(target: &Path) -> ProjectType {
     if target.join("package.json").exists() {
         ProjectType::Node
     } else if target.join("Cargo.toml").exists() {
@@ -145,7 +181,7 @@ fn detect_project_type(target: &PathBuf) -> ProjectType {
     }
 }
 
-fn get_git_commits(target: &PathBuf) -> Option<usize> {
+fn get_git_commits(target: &Path) -> Option<usize> {
     Command::new("git")
         .args(["rev-list", "--count", "HEAD"])
         .current_dir(target)
@@ -162,7 +198,7 @@ fn get_git_commits(target: &PathBuf) -> Option<usize> {
         })
 }
 
-fn get_git_age_days(target: &PathBuf) -> Option<u64> {
+fn get_git_age_days(target: &Path) -> Option<u64> {
     Command::new("git")
         .args(["log", "--reverse", "--format=%ct", "-1"])
         .current_dir(target)
@@ -180,7 +216,7 @@ fn get_git_age_days(target: &PathBuf) -> Option<u64> {
         })
 }
 
-fn count_dependencies(target: &PathBuf, project_type: &ProjectType) -> usize {
+fn count_dependencies(target: &Path, project_type: &ProjectType) -> usize {
     match project_type {
         ProjectType::Node => {
             if let Ok(content) = std::fs::read_to_string(target.join("package.json")) {
@@ -194,7 +230,10 @@ fn count_dependencies(target: &PathBuf, project_type: &ProjectType) -> usize {
                     let mut brace_depth = 0;
                     for line in content.lines() {
                         let trimmed = line.trim();
-                        if trimmed.contains("\"dependencies\"") || trimmed.contains("\"devDependencies\"") || trimmed.contains("\"peerDependencies\"") {
+                        if trimmed.contains("\"dependencies\"")
+                            || trimmed.contains("\"devDependencies\"")
+                            || trimmed.contains("\"peerDependencies\"")
+                        {
                             in_deps = true;
                             brace_depth = 0;
                             continue;
@@ -226,7 +265,10 @@ fn count_dependencies(target: &PathBuf, project_type: &ProjectType) -> usize {
                 let mut in_deps = false;
                 for line in content.lines() {
                     let trimmed = line.trim();
-                    if trimmed == "[dependencies]" || trimmed == "[dev-dependencies]" || trimmed == "[build-dependencies]" {
+                    if trimmed == "[dependencies]"
+                        || trimmed == "[dev-dependencies]"
+                        || trimmed == "[build-dependencies]"
+                    {
                         in_deps = true;
                         continue;
                     }
@@ -234,7 +276,11 @@ fn count_dependencies(target: &PathBuf, project_type: &ProjectType) -> usize {
                         in_deps = false;
                         continue;
                     }
-                    if in_deps && trimmed.contains('=') && !trimmed.is_empty() && !trimmed.starts_with('#') {
+                    if in_deps
+                        && trimmed.contains('=')
+                        && !trimmed.is_empty()
+                        && !trimmed.starts_with('#')
+                    {
                         count += 1;
                     }
                 }
@@ -244,13 +290,21 @@ fn count_dependencies(target: &PathBuf, project_type: &ProjectType) -> usize {
         }
         ProjectType::Python => {
             if let Ok(content) = std::fs::read_to_string(target.join("requirements.txt")) {
-                return content.lines().filter(|l| !l.trim().is_empty() && !l.starts_with('#')).count();
+                return content
+                    .lines()
+                    .filter(|l| !l.trim().is_empty() && !l.starts_with('#'))
+                    .count();
             }
             0
         }
         ProjectType::Go => {
             if let Ok(content) = std::fs::read_to_string(target.join("go.mod")) {
-                return content.lines().filter(|l| l.trim().starts_with("require") || (l.contains('/') && l.contains(' '))).count();
+                return content
+                    .lines()
+                    .filter(|l| {
+                        l.trim().starts_with("require") || (l.contains('/') && l.contains(' '))
+                    })
+                    .count();
             }
             0
         }
@@ -258,7 +312,7 @@ fn count_dependencies(target: &PathBuf, project_type: &ProjectType) -> usize {
     }
 }
 
-fn detect_bloat_dirs(target: &PathBuf) -> Vec<BloatDir> {
+fn detect_bloat_dirs(target: &Path) -> Vec<BloatDir> {
     let candidates = vec![
         ("node_modules", "Incinerating"),
         (".next", "Obliterating"),
@@ -291,7 +345,7 @@ fn detect_bloat_dirs(target: &PathBuf) -> Vec<BloatDir> {
     bloat_dirs
 }
 
-fn dir_size(path: &PathBuf) -> u64 {
+fn dir_size(path: &Path) -> u64 {
     WalkDir::new(path)
         .into_iter()
         .filter_map(|e| e.ok())

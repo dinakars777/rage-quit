@@ -1,14 +1,14 @@
+use crate::analyzer::ProjectType;
+use crossterm::{
+    cursor::MoveTo,
+    execute,
+    style::{Color, Print, ResetColor, SetForegroundColor},
+    terminal::{Clear, ClearType},
+};
 use std::io::{self, Write};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::Duration;
-use crossterm::{
-    execute,
-    terminal::{Clear, ClearType},
-    cursor::MoveTo,
-    style::{Color, SetForegroundColor, Print, ResetColor},
-};
-use crate::analyzer::ProjectType;
 
 /// Handle --comeback: reinstall dependencies with a dramatic crawling-back animation
 pub fn run(target: &PathBuf) {
@@ -49,7 +49,11 @@ pub fn run(target: &PathBuf) {
     let (cmd, args, label) = match project_type {
         ProjectType::Node => ("npm", vec!["install"], "npm install"),
         ProjectType::Rust => ("cargo", vec!["build"], "cargo build"),
-        ProjectType::Python => ("pip", vec!["install", "-r", "requirements.txt"], "pip install"),
+        ProjectType::Python => (
+            "pip",
+            vec!["install", "-r", "requirements.txt"],
+            "pip install",
+        ),
         ProjectType::Go => ("go", vec!["mod", "download"], "go mod download"),
         ProjectType::Unknown => {
             let _ = execute!(
@@ -70,10 +74,7 @@ pub fn run(target: &PathBuf) {
     );
     let _ = handle.flush();
 
-    let status = Command::new(cmd)
-        .args(&args)
-        .current_dir(target)
-        .status();
+    let status = Command::new(cmd).args(&args).current_dir(target).status();
 
     println!();
 
@@ -100,7 +101,7 @@ pub fn run(target: &PathBuf) {
     println!();
 }
 
-fn detect_type(target: &PathBuf) -> ProjectType {
+fn detect_type(target: &Path) -> ProjectType {
     if target.join("package.json").exists() {
         ProjectType::Node
     } else if target.join("Cargo.toml").exists() {
