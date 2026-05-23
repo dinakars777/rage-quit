@@ -9,6 +9,8 @@ use rand::seq::SliceRandom;
 use std::io::{self, Write};
 use std::time::Duration;
 
+const LETTER_BOX_WIDTH: usize = 58;
+
 /// Phase 4: The resignation letter — dynamically generated from project stats
 pub fn run(stats: &ProjectStats, width: u16) {
     let stdout = io::stdout();
@@ -18,9 +20,8 @@ pub fn run(stats: &ProjectStats, width: u16) {
     let _ = handle.flush();
 
     let letter = generate_letter(stats);
-    let box_width = 58;
-    let padding = if (width as usize) > box_width + 4 {
-        ((width as usize) - box_width) / 2
+    let padding = if (width as usize) > LETTER_BOX_WIDTH + 4 {
+        ((width as usize) - LETTER_BOX_WIDTH) / 2
     } else {
         2
     };
@@ -40,28 +41,24 @@ pub fn run(stats: &ProjectStats, width: u16) {
     );
 
     // Top border
-    println!("{}┌{}┐", pad, "─".repeat(box_width));
+    println!("{}┌{}┐", pad, "─".repeat(LETTER_BOX_WIDTH));
 
     // Title
     let title = "LETTER OF RESIGNATION";
-    let title_pad = (box_width - title.len()) / 2;
+    let title_pad = (LETTER_BOX_WIDTH - title.chars().count()) / 2;
     println!(
         "{}│{}{}{}│",
         pad,
         " ".repeat(title_pad),
         title,
-        " ".repeat(box_width - title_pad - title.len())
+        " ".repeat(LETTER_BOX_WIDTH - title_pad - title.chars().count())
     );
-    println!("{}│{}│", pad, " ".repeat(box_width));
+    println!("{}│{}│", pad, " ".repeat(LETTER_BOX_WIDTH));
 
     // Letter body
     for line in &letter {
-        let display_line = if line.len() > box_width - 4 {
-            format!("{}...", &line[..box_width - 7])
-        } else {
-            line.clone()
-        };
-        let right_pad = box_width - 2 - display_line.len();
+        let display_line = fit_letter_line(line, LETTER_BOX_WIDTH);
+        let right_pad = letter_right_padding(&display_line, LETTER_BOX_WIDTH);
         println!(
             "{}│ {}{} │",
             pad,
@@ -72,11 +69,25 @@ pub fn run(stats: &ProjectStats, width: u16) {
     }
 
     // Bottom border
-    println!("{}└{}┘", pad, "─".repeat(box_width));
+    println!("{}└{}┘", pad, "─".repeat(LETTER_BOX_WIDTH));
 
     let _ = execute!(handle, ResetColor);
     println!();
     std::thread::sleep(Duration::from_millis(1500));
+}
+
+fn fit_letter_line(line: &str, box_width: usize) -> String {
+    let content_width = box_width.saturating_sub(4);
+    if line.chars().count() <= content_width {
+        return line.to_string();
+    }
+
+    let prefix: String = line.chars().take(content_width.saturating_sub(3)).collect();
+    format!("{prefix}...")
+}
+
+fn letter_right_padding(line: &str, box_width: usize) -> usize {
+    box_width.saturating_sub(2 + line.chars().count())
 }
 
 /// Generate the letter content from project stats
@@ -263,5 +274,25 @@ fn humanize_days(days: u64) -> String {
         format!("{} days", days)
     } else {
         "less than a day".to_string()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn letter_line_truncation_preserves_utf8_boundaries() {
+        let line = format!("{}—{}", "a".repeat(60), "done");
+        let fitted = fit_letter_line(&line, LETTER_BOX_WIDTH);
+
+        assert!(fitted.ends_with("..."));
+        assert!(fitted.is_char_boundary(fitted.len()));
+        assert!(fitted.chars().count() <= LETTER_BOX_WIDTH - 4);
+    }
+
+    #[test]
+    fn letter_padding_saturates_for_tiny_boxes() {
+        assert_eq!(letter_right_padding("long line", 4), 0);
     }
 }
