@@ -84,6 +84,8 @@ Contributions welcome! Especially:
 - [ ] Team rage-quit (notify Slack before quitting)
 - [ ] Rage quit leaderboard
 
+See [ROADMAP.md](ROADMAP.md) for the current improvement plan.
+
 ## License
 
 MIT
