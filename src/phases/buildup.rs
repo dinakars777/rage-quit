@@ -7,7 +7,6 @@ use crossterm::{
     terminal::{Clear, ClearType},
 };
 use std::io::{self, Write};
-use std::time::Duration;
 
 /// Phase 1: The dramatic buildup — screen goes dark, typewriter text, rage meter fills
 pub fn run(width: u16, height: u16, sound: &SoundPlayer) {
@@ -18,7 +17,7 @@ pub fn run(width: u16, height: u16, sound: &SoundPlayer) {
     let _ = execute!(handle, Clear(ClearType::All), MoveTo(0, 0));
     let _ = handle.flush();
 
-    std::thread::sleep(Duration::from_millis(800));
+    animation::sleep_ms(800);
 
     // Move to roughly center of screen
     let center_y = height / 3;
@@ -35,14 +34,14 @@ pub fn run(width: u16, height: u16, sound: &SoundPlayer) {
     );
     animation::typewriter_centered("You have mass-committed enough.", width, 50);
     println!();
-    std::thread::sleep(Duration::from_millis(400));
+    animation::sleep_ms(400);
 
     animation::typewriter_centered("It's time to go.", width, 70);
     let _ = execute!(handle, ResetColor);
     println!();
     println!();
 
-    std::thread::sleep(Duration::from_millis(600));
+    animation::sleep_ms(600);
 
     // Rage meter
     animation::rage_meter(width);
@@ -52,5 +51,5 @@ pub fn run(width: u16, height: u16, sound: &SoundPlayer) {
 
     println!();
 
-    std::thread::sleep(Duration::from_millis(300));
+    animation::sleep_ms(300);
 }

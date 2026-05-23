@@ -44,8 +44,8 @@ struct Cli {
     bell_only: bool,
 
     /// Animation speed: slow, normal, fast
-    #[arg(long, default_value = "normal")]
-    speed: String,
+    #[arg(long, value_enum, default_value_t = animation::AnimationSpeed::Normal)]
+    speed: animation::AnimationSpeed,
 
     /// Target a specific directory
     #[arg(long)]
@@ -54,6 +54,7 @@ struct Cli {
 
 fn main() {
     let cli = Cli::parse();
+    animation::set_speed(cli.speed);
 
     let target = cli
         .target

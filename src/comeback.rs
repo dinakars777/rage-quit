@@ -1,4 +1,5 @@
 use crate::analyzer::ProjectType;
+use crate::animation;
 use crossterm::{
     cursor::MoveTo,
     execute,
@@ -8,7 +9,6 @@ use crossterm::{
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::time::Duration;
 
 /// Handle --comeback: reinstall dependencies with a dramatic crawling-back animation
 pub fn run(target: &PathBuf) {
@@ -36,12 +36,12 @@ pub fn run(target: &PathBuf) {
             ResetColor,
         );
         let _ = handle.flush();
-        std::thread::sleep(Duration::from_millis(800));
+        animation::sleep_ms(800);
         let _ = execute!(handle, Print("\n"));
     }
 
     println!();
-    std::thread::sleep(Duration::from_millis(500));
+    animation::sleep_ms(500);
 
     // Detect project type and reinstall
     let project_type = detect_type(target);

@@ -7,7 +7,6 @@ use crossterm::{
 };
 use rand::seq::SliceRandom;
 use std::io::{self, Write};
-use std::time::Duration;
 
 const LETTER_BOX_WIDTH: usize = 58;
 
@@ -28,7 +27,7 @@ pub fn run(stats: &ProjectStats, width: u16) {
     let pad = " ".repeat(padding);
 
     println!();
-    std::thread::sleep(Duration::from_millis(300));
+    crate::animation::sleep_ms(300);
 
     // Draw the box
     let _ = execute!(
@@ -65,7 +64,7 @@ pub fn run(stats: &ProjectStats, width: u16) {
             display_line,
             " ".repeat(right_pad.max(0))
         );
-        std::thread::sleep(Duration::from_millis(80));
+        crate::animation::sleep_ms(80);
     }
 
     // Bottom border
@@ -73,7 +72,7 @@ pub fn run(stats: &ProjectStats, width: u16) {
 
     let _ = execute!(handle, ResetColor);
     println!();
-    std::thread::sleep(Duration::from_millis(1500));
+    crate::animation::sleep_ms(1500);
 }
 
 fn fit_letter_line(line: &str, box_width: usize) -> String {

@@ -6,7 +6,6 @@ use crossterm::{
     terminal::{Clear, ClearType},
 };
 use std::io::{self, Write};
-use std::time::Duration;
 
 /// Phase 2: The explosion — fire fills the screen, fake errors cascade
 pub fn run(width: u16, height: u16, sound: &SoundPlayer) {
@@ -23,7 +22,7 @@ pub fn run(width: u16, height: u16, sound: &SoundPlayer) {
     // Fire animation
     animation::fire_animation(width, height.min(20));
 
-    std::thread::sleep(Duration::from_millis(200));
+    animation::sleep_ms(200);
 
     // Clear fire, show fake errors
     let _ = execute!(handle, Clear(ClearType::All), MoveTo(0, 0));
@@ -33,5 +32,5 @@ pub fn run(width: u16, height: u16, sound: &SoundPlayer) {
     animation::fake_errors(width, Some(sound));
     println!();
 
-    std::thread::sleep(Duration::from_millis(500));
+    animation::sleep_ms(500);
 }
