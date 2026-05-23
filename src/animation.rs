@@ -1,10 +1,38 @@
+use clap::ValueEnum;
 use crossterm::{
     execute,
     style::{Color, Print, ResetColor, SetForegroundColor},
 };
 use rand::Rng;
 use std::io::{self, Write};
+use std::sync::atomic::{AtomicU8, Ordering};
 use std::time::Duration;
+
+static ANIMATION_SPEED: AtomicU8 = AtomicU8::new(AnimationSpeed::Normal as u8);
+
+#[derive(Clone, Copy, Debug, ValueEnum)]
+#[repr(u8)]
+pub enum AnimationSpeed {
+    Slow = 0,
+    Normal = 1,
+    Fast = 2,
+}
+
+pub fn set_speed(speed: AnimationSpeed) {
+    ANIMATION_SPEED.store(speed as u8, Ordering::Relaxed);
+}
+
+pub fn scaled_duration_ms(ms: u64) -> u64 {
+    match ANIMATION_SPEED.load(Ordering::Relaxed) {
+        0 => ms.saturating_mul(2),
+        2 => (ms / 2).max(1),
+        _ => ms,
+    }
+}
+
+pub fn sleep_ms(ms: u64) {
+    std::thread::sleep(Duration::from_millis(scaled_duration_ms(ms)));
+}
 
 /// Print text one character at a time with a delay
 pub fn typewriter(text: &str, delay_ms: u64) {
@@ -13,7 +41,7 @@ pub fn typewriter(text: &str, delay_ms: u64) {
     for ch in text.chars() {
         let _ = execute!(handle, Print(ch));
         let _ = handle.flush();
-        std::thread::sleep(Duration::from_millis(delay_ms));
+        sleep_ms(delay_ms);
     }
 }
 
@@ -60,7 +88,7 @@ pub fn rage_meter(width: u16) {
 
         let _ = execute!(handle, SetForegroundColor(color), Print(&bar), ResetColor);
         let _ = handle.flush();
-        std::thread::sleep(Duration::from_millis(60));
+        sleep_ms(60);
     }
 
     // Flash red 3 times at 100%
@@ -73,7 +101,7 @@ pub fn rage_meter(width: u16) {
             ResetColor
         );
         let _ = handle.flush();
-        std::thread::sleep(Duration::from_millis(100));
+        sleep_ms(100);
         let bar_bright = format!("\r  RAGE LEVEL [{}] 100%", "█".repeat(bar_width));
         let _ = execute!(
             handle,
@@ -86,7 +114,7 @@ pub fn rage_meter(width: u16) {
             ResetColor
         );
         let _ = handle.flush();
-        std::thread::sleep(Duration::from_millis(100));
+        sleep_ms(100);
     }
 
     println!();
@@ -154,11 +182,11 @@ pub fn fire_animation(width: u16, height: u16) {
         }
 
         let _ = handle.flush();
-        std::thread::sleep(Duration::from_millis(40));
+        sleep_ms(40);
     }
 
     // Hold the full fire for a beat
-    std::thread::sleep(Duration::from_millis(300));
+    sleep_ms(300);
 }
 
 /// Render a dramatic progress bar
@@ -202,7 +230,7 @@ pub fn progress_bar(label: &str, verb: &str, size_str: &str, duration_ms: u64) {
             ResetColor
         );
         let _ = handle.flush();
-        std::thread::sleep(Duration::from_millis(duration_ms / steps as u64));
+        sleep_ms(duration_ms / steps as u64);
     }
 
     let _ = execute!(handle, Print(format!(" — {} freed", size_str)),);
@@ -261,7 +289,7 @@ pub fn fake_errors(width: u16, sound: Option<&crate::sound::SoundPlayer>) {
             player.play(crate::sound::SoundEffect::Error);
         }
 
-        std::thread::sleep(Duration::from_millis(rng.gen_range(80..250)));
+        sleep_ms(rng.gen_range(80..250));
     }
 }
 
@@ -286,5 +314,18 @@ mod tests {
     #[test]
     fn fake_error_truncation_preserves_utf8_boundaries() {
         assert_eq!(fit_error_to_width("ééé", 5), "é");
+    }
+
+    #[test]
+    fn animation_speed_scales_durations() {
+        set_speed(AnimationSpeed::Slow);
+        assert_eq!(scaled_duration_ms(10), 20);
+
+        set_speed(AnimationSpeed::Fast);
+        assert_eq!(scaled_duration_ms(10), 5);
+        assert_eq!(scaled_duration_ms(1), 1);
+
+        set_speed(AnimationSpeed::Normal);
+        assert_eq!(scaled_duration_ms(10), 10);
     }
 }

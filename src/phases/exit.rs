@@ -1,10 +1,10 @@
+use crate::animation;
 use crate::sound::{SoundEffect, SoundPlayer};
 use crossterm::{
     execute,
     style::{Color, Print, ResetColor, SetForegroundColor},
 };
 use std::io::{self, Write};
-use std::time::Duration;
 
 /// Phase 5: The mic drop and final exit message
 pub fn run(width: u16, sound: &SoundPlayer) {
@@ -28,14 +28,14 @@ pub fn run(width: u16, sound: &SoundPlayer) {
             4
         };
         println!("{}{}", " ".repeat(padding), line);
-        std::thread::sleep(Duration::from_millis(200));
+        animation::sleep_ms(200);
     }
 
     // Mic drop sound
     sound.play(SoundEffect::MicDrop);
 
     println!();
-    std::thread::sleep(Duration::from_millis(500));
+    animation::sleep_ms(500);
 
     // Final message
     let msg = "rage-quit complete. Touch grass. 🌱";
@@ -54,5 +54,5 @@ pub fn run(width: u16, sound: &SoundPlayer) {
     let _ = handle.flush();
 
     println!();
-    std::thread::sleep(Duration::from_millis(500));
+    animation::sleep_ms(500);
 }

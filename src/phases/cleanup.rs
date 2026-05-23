@@ -8,7 +8,6 @@ use crossterm::{
     terminal::{Clear, ClearType},
 };
 use std::io::{self, Read, Write};
-use std::time::Duration;
 
 /// Phase 3: Cleanup — progress bars for each bloat dir, optionally nuke them
 pub fn run(stats: &ProjectStats, nuke: bool, sound: &SoundPlayer) {
@@ -27,7 +26,7 @@ pub fn run(stats: &ProjectStats, nuke: bool, sound: &SoundPlayer) {
             ResetColor,
         );
         println!();
-        std::thread::sleep(Duration::from_millis(1500));
+        animation::sleep_ms(1500);
         return;
     }
 
@@ -137,7 +136,7 @@ pub fn run(stats: &ProjectStats, nuke: bool, sound: &SoundPlayer) {
     }
 
     println!();
-    std::thread::sleep(Duration::from_millis(800));
+    animation::sleep_ms(800);
 }
 
 fn run_progress_bars(stats: &ProjectStats, actually_delete: bool, sound: &SoundPlayer) {
