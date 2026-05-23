@@ -247,7 +247,7 @@ pub fn fake_errors(width: u16, sound: Option<&crate::sound::SoundPlayer>) {
 
     for msg in &errors {
         // Truncate to terminal width
-        let display: String = msg.chars().take(width as usize - 4).collect();
+        let display = fit_error_to_width(msg, width);
         let _ = execute!(
             handle,
             SetForegroundColor(Color::Red),
@@ -262,5 +262,29 @@ pub fn fake_errors(width: u16, sound: Option<&crate::sound::SoundPlayer>) {
         }
 
         std::thread::sleep(Duration::from_millis(rng.gen_range(80..250)));
+    }
+}
+
+fn fit_error_to_width(message: &str, width: u16) -> String {
+    message
+        .chars()
+        .take(width.saturating_sub(4) as usize)
+        .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn fake_error_truncation_handles_narrow_widths() {
+        assert_eq!(fit_error_to_width("abcdef", 0), "");
+        assert_eq!(fit_error_to_width("abcdef", 3), "");
+        assert_eq!(fit_error_to_width("abcdef", 6), "ab");
+    }
+
+    #[test]
+    fn fake_error_truncation_preserves_utf8_boundaries() {
+        assert_eq!(fit_error_to_width("ééé", 5), "é");
     }
 }
