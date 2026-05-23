@@ -220,10 +220,7 @@ fn count_dependencies(target: &Path, project_type: &ProjectType) -> usize {
     match project_type {
         ProjectType::Node => {
             if let Ok(content) = std::fs::read_to_string(target.join("package.json")) {
-                // Simple counting: count occurrences of version-like patterns in deps
-                let deps = content.matches("\"dependencies\"").count();
-                let dev_deps = content.matches("\"devDependencies\"").count();
-                if deps > 0 || dev_deps > 0 {
+                if has_node_dependency_sections(&content) {
                     // Count lines between braces for each section
                     let mut count = 0;
                     let mut in_deps = false;
@@ -235,22 +232,16 @@ fn count_dependencies(target: &Path, project_type: &ProjectType) -> usize {
                             || trimmed.contains("\"peerDependencies\"")
                         {
                             in_deps = true;
-                            brace_depth = 0;
+                            brace_depth = brace_delta(trimmed);
                             continue;
                         }
                         if in_deps {
-                            if trimmed.contains('{') {
-                                brace_depth += 1;
-                            }
-                            if trimmed.contains('}') {
-                                brace_depth -= 1;
-                                if brace_depth <= 0 {
-                                    in_deps = false;
-                                }
-                                continue;
-                            }
-                            if trimmed.contains(':') && brace_depth > 0 {
+                            if is_node_dependency_entry(trimmed) && brace_depth > 0 {
                                 count += 1;
+                            }
+                            brace_depth += brace_delta(trimmed);
+                            if brace_depth <= 0 {
+                                in_deps = false;
                             }
                         }
                     }
@@ -312,6 +303,20 @@ fn count_dependencies(target: &Path, project_type: &ProjectType) -> usize {
     }
 }
 
+fn has_node_dependency_sections(content: &str) -> bool {
+    content.contains("\"dependencies\"")
+        || content.contains("\"devDependencies\"")
+        || content.contains("\"peerDependencies\"")
+}
+
+fn brace_delta(line: &str) -> i32 {
+    line.matches('{').count() as i32 - line.matches('}').count() as i32
+}
+
+fn is_node_dependency_entry(trimmed: &str) -> bool {
+    trimmed.starts_with('"') && trimmed.contains(':')
+}
+
 fn detect_bloat_dirs(target: &Path) -> Vec<BloatDir> {
     let candidates = vec![
         ("node_modules", "Incinerating"),
@@ -352,4 +357,42 @@ fn dir_size(path: &Path) -> u64 {
         .filter(|e| e.file_type().is_file())
         .map(|e| e.metadata().map(|m| m.len()).unwrap_or(0))
         .sum()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+
+    fn temp_project(name: &str) -> PathBuf {
+        let dir = std::env::temp_dir().join(format!("rage_quit_{name}_{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    #[test]
+    fn counts_node_dependency_sections() {
+        let dir = temp_project("node_dependency_sections");
+        fs::write(
+            dir.join("package.json"),
+            r#"{
+  "dependencies": {
+    "react": "^18.0.0",
+    "@scope/pkg": "1.2.3"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}"#,
+        )
+        .unwrap();
+
+        assert_eq!(count_dependencies(&dir, &ProjectType::Node), 4);
+
+        fs::remove_dir_all(dir).unwrap();
+    }
 }
